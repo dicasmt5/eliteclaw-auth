@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EliteClaw Authentication</title>
+    <title>EliteClaw Gateway</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #0f172a; color: #f8fafc; text-align: center; }
         .card { background: #1e293b; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-width: 400px; width: 90%; }
@@ -11,45 +11,37 @@
         p { color: #cbd5e1; }
         .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #38bdf8; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        a { color: #38bdf8; text-decoration: none; }
+        .btn { display: inline-block; background: #38bdf8; color: #0f172a; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
     <div class="card">
         <h2>EliteClaw Gateway</h2>
         <div class="spinner"></div>
-        <p id="message">Autenticando... Por favor, aguarde.</p>
-        <p id="fallback" style="display: none; margin-top: 20px; font-size: 0.9em;">
-            Se o aplicativo nÃ£o abrir automaticamente, <a href="#" id="manual-link">clique aqui para continuar</a>.
-        </p>
+        <p id="message">Aguardando autorizaÃ§Ã£o...</p>
+        <div id="fallback" style="display: none; margin-top: 20px;">
+            <p style="font-size: 0.9em; margin-bottom: 10px;">Se o aplicativo nÃ£o abrir sozinho:</p>
+            <a href="#" id="manual-link" class="btn">Continuar para o Aplicativo</a>
+        </div>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Get URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
             const scheme = urlParams.get('scheme') || 'eliteclaw'; 
             const pkg = urlParams.get('package') || 'com.eliteclaw.proot';
 
             if (code) {
-                // Build the deep link
-                const deepLink = scheme + "://auth/callback?code=" + encodeURIComponent(code);
+                const intentUrl = "intent://auth/callback?code=" + encodeURIComponent(code) + "#Intent;scheme=" + scheme + ";package=" + pkg + ";end";
                 
-                // Show fallback link just in case
                 setTimeout(() => {
                     document.getElementById('fallback').style.display = 'block';
-                    document.getElementById('manual-link').href = deepLink;
-                    document.getElementById('message').innerText = "VocÃª jÃ¡ pode fechar esta tela e voltar ao app.";
-                }, 2000);
+                    document.getElementById('manual-link').href = intentUrl;
+                    document.getElementById('message').innerText = "AutorizaÃ§Ã£o concluÃ­da! Voltando ao app...";
+                }, 1500);
 
-                // Strategy 1: standard href redirect
-                window.location.href = deepLink;
-
-                // Strategy 2: Intent URI redirect (Android fallback)
-                setTimeout(() => {
-                    window.location.href = "intent://auth/callback?code=" + encodeURIComponent(code) + "#Intent;scheme=" + scheme + ";package=" + pkg + ";end";
-                }, 1000);
+                window.location.href = intentUrl;
             } else {
                 document.getElementById('message').innerText = "Erro: Nenhum cÃ³digo de autorizaÃ§Ã£o encontrado.";
                 document.querySelector('.spinner').style.display = 'none';
