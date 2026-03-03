@@ -8,20 +8,21 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #0f172a; color: #f8fafc; text-align: center; }
         .card { background: #1e293b; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-width: 400px; width: 90%; }
         h2 { margin-top: 0; color: #38bdf8; }
-        p { color: #cbd5e1; }
+        p { color: #cbd5e1; font-size: 1.1em; margin-bottom: 20px;}
         .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #38bdf8; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .btn { display: inline-block; background: #38bdf8; color: #0f172a; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px; }
+        .btn { display: inline-block; background: #38bdf8; color: #0f172a; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px; font-size: 1.1em; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); }
     </style>
 </head>
 <body>
     <div class="card">
         <h2>EliteClaw Gateway</h2>
-        <div class="spinner"></div>
-        <p id="message">Aguardando autorizaÃ§Ã£o...</p>
-        <div id="fallback" style="display: none; margin-top: 20px;">
-            <p style="font-size: 0.9em; margin-bottom: 10px;">Se o aplicativo nÃ£o abrir sozinho:</p>
-            <a href="#" id="manual-link" class="btn">Continuar para o Aplicativo</a>
+        <div class="spinner" id="spinner"></div>
+        <p id="message">Conectando...</p>
+        
+        <div id="action-area" style="display: none; margin-top: 20px;">
+            <p style="font-size: 0.9em; margin-bottom: 15px; color: #94a3b8;">Se o aplicativo nÃ£o abrir sozinho, clique no botÃ£o abaixo:</p>
+            <a href="#" id="manual-link" class="btn">Voltar para o Aplicativo</a>
         </div>
     </div>
 
@@ -30,21 +31,25 @@
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
             const scheme = urlParams.get('scheme') || 'eliteclaw'; 
-            const pkg = urlParams.get('package') || 'com.eliteclaw.proot';
 
             if (code) {
-                const intentUrl = "intent://auth/callback?code=" + encodeURIComponent(code) + "#Intent;scheme=" + scheme + ";package=" + pkg + ";end";
+                // Apenas usamos o 'scheme' cru em vez de intent:// com o package, 
+                // pois o Android pode tentar procurar na PlayStore e dizer "Item nÃ£o encontrado".
+                const rawUrl = scheme + "://auth/callback?code=" + encodeURIComponent(code);
                 
+                // OpÃ§Ã£o de backup segura se a pÃ¡gina travar
                 setTimeout(() => {
-                    document.getElementById('fallback').style.display = 'block';
-                    document.getElementById('manual-link').href = intentUrl;
-                    document.getElementById('message').innerText = "AutorizaÃ§Ã£o concluÃ­da! Voltando ao app...";
-                }, 1500);
+                    document.getElementById('action-area').style.display = 'block';
+                    document.getElementById('manual-link').href = rawUrl;
+                    document.getElementById('message').innerText = "AutorizaÃ§Ã£o pronta!";
+                    document.getElementById('spinner').style.display = 'none';
+                }, 1000);
 
-                window.location.href = intentUrl;
+                // Tentativa direta
+                window.location.href = rawUrl;
             } else {
                 document.getElementById('message').innerText = "Erro: Nenhum cÃ³digo de autorizaÃ§Ã£o encontrado.";
-                document.querySelector('.spinner').style.display = 'none';
+                document.getElementById('spinner').style.display = 'none';
             }
         });
     </script>
